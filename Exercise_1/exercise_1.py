@@ -9,13 +9,13 @@ from sklearn.model_selection import train_test_split
 
 # Task 1
 """ 
-(a) Unsupervised Learning  : Because products bought together are a set of unlabeled data set where the  solving learning problem includes finding patterns and relationships between the objects.
-(b) Reinforcement Learning : Because a chess computer needs to react with the player and take actions based on the previous outcome of the data set .
-(c) Supervised Learning    : Because the spam recognition system  needs to classify the set of emails which is a set of labeled data.
-(d) Supervised Learning    : Because the classification of applicants system  needs to classify the set of applicants as credit-worthy or unworthy which is a set of labeled data.
-(e) Supervised Learning    : Because the Object recognition in computer vision needs to classify the set of objects based on their features .
-(f) Reinforcement Learning : Because the Robot needs to be trained  and interact based on the obstacles and take actions to get to the end point.
-(g) Unsupervised Learning  : Because the task involves involves clustering images with is a set of unlabeled data based on groups.
+(a) Unsupervised Learning  : Because products bought together are an unlabeled data set where the solved learning problem includes finding patterns and relationships between the objects.
+(b) Reinforcement Learning : Because a chess computer needs to react with the player and take actions based on the previous outcome of the data set.
+(c) Supervised Learning    : Because the spam recognition system needs to classify the  set of labeled data.
+(d) Supervised Learning    : Because the system to classify applicants needs to classify whether they are credit-worthy or unworthy which is based on a set of labeled data.
+(e) Supervised Learning    : Because the Object recognition in computer vision needs to classify the set of objects based on their labeled features.
+(f) Reinforcement Learning : Because the Robot needs to be trained and interact based on the obstacles and take actions to get to the end point.
+(g) Unsupervised Learning  : Because the task involves involves clustering images with a set of unlabeled data based on groups.
  """
 
 
