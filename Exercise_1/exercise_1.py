@@ -1,8 +1,13 @@
+'''
+Authors:
+    Aaya Bougrine
+    Henrik Albers
+    Katharina Thöne
+'''
+
 # Imports
-from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
