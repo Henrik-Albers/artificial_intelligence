@@ -1,5 +1,7 @@
 # Workspace
 .vscode*
+# WandB
+/Exercise_3/wandb/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
