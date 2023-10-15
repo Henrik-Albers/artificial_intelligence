@@ -1,3 +1,10 @@
+# Workspace
+.vscode*
+# WandB
+/Exercise_3/wandb/
+*.zip
+*/household_power_consumption.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
