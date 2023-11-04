@@ -5,6 +5,9 @@
 *.zip
 */household_power_consumption.txt
 
+# Data
+/Assignment/data/*.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
