@@ -5,10 +5,6 @@ from typing import List
 import statistics
 
 
-class VBA:
-    pass
-
-
 class SmartMeter:
     """
     Single Smart Meter
