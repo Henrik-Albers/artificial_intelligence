@@ -1,6 +1,7 @@
+import csv
 import numpy as np
 import pandas as pd
-
+from typing import List
 
 def generate_test_data_df(
     T,
@@ -23,6 +24,7 @@ def generate_test_data_df(
 
     Returns:
         DataFrame: DataFrame consisting of the generated data
+        List[float]: List containing the consumption totals of all SMs for time t
     """
     data = []
     for record_idx in range(N):
@@ -57,7 +59,9 @@ def generate_test_data_df(
     col_names = [f"t{x}" for x in range(T)]
     col_names.append("Attack")
     data_frame = pd.DataFrame(data, columns=col_names)
-    return data_frame
+    total_row = data_frame.sum(axis=0, numeric_only=True).to_list()
+
+    return data_frame, total_row
 
 
 def generate_test_data_file(
@@ -81,7 +85,7 @@ def generate_test_data_file(
         stealing_percentage: Percentage of stealing vs. malfunctioning attackers
         attack_strength: Mean of normal distribution, that is used for Attack modification
     """
-    data = generate_test_data_df(
+    data, totals = generate_test_data_df(
         T=T,
         N=N,
         m_mean=m_mean,
@@ -90,10 +94,17 @@ def generate_test_data_file(
         attack_strength=attack_strength
     )
     data.to_csv(path)
+    totals.insert(0,"Totals:")
+    totals.append("")
+    with open(path, "+a") as file:
+        spamwriter = csv.writer(file, delimiter=',')
+        spamwriter.writerow(totals)
+
+
 
 
 if __name__ == "__main__":
-    data = generate_test_data_df(T=5, N=10)
+    data,_ = generate_test_data_df(T=5, N=10)
     path = r"Assignment\data\test_data.csv"
-    # generate_test_data_file(path=path, T=5, N=10)
+    generate_test_data_file(path=path, T=5, N=10)
     print(data.head())
