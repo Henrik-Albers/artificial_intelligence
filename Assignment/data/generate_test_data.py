@@ -24,7 +24,6 @@ def generate_test_data_df(
 
     Returns:
         DataFrame: DataFrame consisting of the generated data
-        List[float]: List containing the consumption totals of all SMs for time t
     """
     data = []
     for record_idx in range(N):
@@ -49,19 +48,18 @@ def generate_test_data_df(
         # Add column with outcome
         if is_attacker == 1:
             if is_stealing == 1:
-                record.append("stealing")
+                record.append(-modification)
             else:
-                record.append("malfunctioning")
+                record.append(modification)
         else:
-            record.append("sm ok")
+            record.append(0)
         data.append(record)
 
     col_names = [f"t{x}" for x in range(T)]
     col_names.append("Attack")
     data_frame = pd.DataFrame(data, columns=col_names)
-    total_row = data_frame.sum(axis=0, numeric_only=True).to_list()
 
-    return data_frame, total_row
+    return data_frame
 
 
 def generate_test_data_file(
@@ -94,13 +92,6 @@ def generate_test_data_file(
         attack_strength=attack_strength
     )
     data.to_csv(path)
-    totals.insert(0,"Totals:")
-    totals.append("")
-    with open(path, "+a") as file:
-        spamwriter = csv.writer(file, delimiter=',')
-        spamwriter.writerow(totals)
-
-
 
 
 if __name__ == "__main__":

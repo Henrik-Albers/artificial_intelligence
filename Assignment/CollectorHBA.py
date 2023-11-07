@@ -33,22 +33,41 @@ class CollectorHBA:
 
     Args:
         smart_meters(List[SmartMeterHBA]): List of all Smart Meters in the Swarm
-        sm_totals(List[int]): List of sum of consumptions of all SMs for time t
     """
     
-    def __init__(self, smart_meters: List[SmartMeterHBA], sm_totals: List[int]):
-        self.smart_meters = smart_meters
-        self.sm_totals = sm_totals
+    def __init__(self, data: np.ndarray):
+        sms = generate_smart_meters_HBA(data)
+        self.smart_meters = sms
+        self._data = data
+        # -1 to exclude the attack column
+        self.sm_totals = self.calculate_totals(data.shape[1]-1)
 
     def print_collector(self):
         for sm in self.smart_meters:
-            print(sm.historic_data)
+            sm.print_smart_meter()
         print(self.sm_totals)
+
+    def calculate_totals(self, t:int):
+        """
+        Calculates the total amount of energy used by all SMs
+        of the collector for time period t.
+
+        Args:
+            t(int): Time period for which the overall consumption is calculated
+
+        Returns:
+            np.ndarray: Array of length t containing the sums of consumption  
+        """
+
+        # Data should be in array from new to old otherwise change line
+        data = self._data[:, 0:t]
+        totals = np.sum(data, axis=0)
+        return totals
+
 
     
 
 if __name__ == "__main__":
-    data, totals = generate_test_data_df(T=5, N=10)
-    sms = generate_smart_meters_HBA(np.array(data))
-    collector = CollectorHBA(sms, totals)
+    data = generate_test_data_df(T=5, N=10)
+    collector = CollectorHBA(np.array(data))
     collector.print_collector()
