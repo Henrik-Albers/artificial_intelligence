@@ -95,5 +95,5 @@ def generate_test_data_file(
 if __name__ == "__main__":
     data = generate_test_data_df(T=5, N=10)
     path = r"Assignment\data\test_data.csv"
-    # generate_test_data_file(path=path, T=5, N=10)
+    generate_test_data_file(path=path, T=5, N=10)
     print(data.head())
