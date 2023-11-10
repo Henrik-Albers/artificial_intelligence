@@ -9,10 +9,10 @@ from VirtualCollectorHBA import VirtualCollectorHBA
 
 
 class SwarmHBA:
-    def __init__(self):
+    def __init__(self, swarm_size:int):
         self.data = np.array(generate_test_data_df(T=5, N=10))
         self.physical_collectors = generate_collectors(self.data)
-        self.initialize_new_swarm(2)
+        self.initialize_new_swarm(swarm_size)
 
     def initialize_new_swarm(self, swarm_size:int):
         sm_idxs = list(range(len(self.data)))
@@ -24,12 +24,13 @@ class SwarmHBA:
             idx_counter = 0
             for i in range(len(self.physical_collectors)):
                 sms = self.physical_collectors[i].smart_meters
-                len_i = len(sms)-1
-                if len_i + idx_counter >= rnd_sm:
+                len_i = len(sms)
+                if len_i + idx_counter > rnd_sm:
                     sm_belongs_to_col_of_index.append(i)
                     swarm_sms.append(
                         sms[rnd_sm-idx_counter]
                     )
+                    break
                 idx_counter += len_i
  
         count_sm_per_col = []
@@ -44,4 +45,5 @@ class SwarmHBA:
         )
 
 if __name__ == "__main__":
-    swarm = SwarmHBA()
+    swarm = SwarmHBA(swarm_size=2)
+    swarm.virtual_collector.print_vc()

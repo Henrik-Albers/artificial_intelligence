@@ -16,3 +16,7 @@ class VirtualCollectorHBA:
         self.sm_sample = sm_sample
         self.count_sm_per_col = count_sm_per_col
         self.sm_belongs_to_col_of_index = sm_belongs_to_col_of_index
+
+    def print_vc(self):
+        print(f"Count of SMs of physical collector: {self.count_sm_per_col}")
+        print(f"SM belongs to physical collector: {self.sm_belongs_to_col_of_index}")
