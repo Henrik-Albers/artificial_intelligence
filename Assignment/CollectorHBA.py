@@ -1,30 +1,8 @@
 import numpy as np
 from typing import List
+
 from data.generate_test_data import generate_test_data_df
-
-from SmartMeterHBA import SmartMeterHBA
-
-def generate_smart_meters_HBA(
-    data: np.ndarray
-) -> List[SmartMeterHBA]:
-    """
-    Generates Smart Meters for the HBA algorithm
-
-    Args:
-        data(np.ndarray): historic data of the smart meter and attack status
-
-    Returns:
-        List[SmartMeterHBA]: List of SmartMetersHBAs
-    """
-    smart_meters = []
-    for record in data:
-        smart_meters.append(
-                SmartMeterHBA(
-                    historic_data=record[:-1],
-                    attack_status=record[-1]
-                )
-            )
-    return smart_meters
+from SmartMeterHBA import SmartMeterHBA, generate_smart_meters_HBA
 
 
 class CollectorHBA:
@@ -35,20 +13,20 @@ class CollectorHBA:
         smart_meters(List[SmartMeterHBA]): List of all Smart Meters in the Swarm
     """
     
-    def __init__(self, data: np.ndarray):
-        sms = generate_smart_meters_HBA(data)
-        self.smart_meters = sms
+    def __init__(self, data: np.ndarray, smart_meters: List[SmartMeterHBA]):
+        self.smart_meters = smart_meters
+        self.sm_count = len(smart_meters)
         self._data = data
-        # -1 to exclude the attack column
-        self.sm_totals = self.calculate_totals(data.shape[1]-1)
 
     def print_collector(self):
         for sm in self.smart_meters:
             sm.print_smart_meter()
-        print(self.sm_totals)
+        # print(self.sm_totals)
 
     def calculate_totals(self, t:int):
+        # DEPRECATED
         """
+        DEPRECATED
         Calculates the total amount of energy used by all SMs
         of the collector for time period t.
 
@@ -64,10 +42,52 @@ class CollectorHBA:
         totals = np.sum(data, axis=0)
         return totals
 
+    # TODO: Part of virtual coll
+    def start_validation_process(self, t:int):
+        """
+        Starts the process to collect and validate past consumption readings.
 
-    
+        Args:
+            t(int): Time frame for which the process is started
+        """
+        # Requesting data from SMs
+        P = []
+        for sm in self.smart_meters:
+           retrieved_data = sm.submit_historic_data(t)  
+           P.append(retrieved_data)
+        P = np.array(P)
+
+        # Building equation system
+        P.shape[0]
+        k = np.zeros(shape=(P.shape[0],1))
+        print()
+
+
+def generate_collectors(data: np.ndarray, count_collectors:int = None) -> List[CollectorHBA]:
+    collector_list = []
+    if count_collectors == None:
+        split_index = 5
+    else:
+        split_index = count_collectors
+    collectors_data = np.split(data, split_index)
+    for collector_data in collectors_data:
+        collector_list.append(
+            CollectorHBA(
+                data=collector_data,
+                smart_meters=generate_smart_meters_HBA(collector_data)
+            )
+        )
+
+    return collector_list
+
 
 if __name__ == "__main__":
-    data = generate_test_data_df(T=5, N=10)
-    collector = CollectorHBA(np.array(data))
-    collector.print_collector()
+    data = np.array(generate_test_data_df(T=5, N=10))
+    #collector = CollectorHBA(np.array(data))
+    #collector.print_collector()
+    #print("Collected data:")
+    #collector.start_validation_process(5)
+
+    collectors = generate_collectors(data)
+    for col in collectors:
+        col.print_collector()
