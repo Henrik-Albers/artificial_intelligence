@@ -1,3 +1,4 @@
+import numpy as np
 from typing import List
 
 from CollectorHBA import CollectorHBA
@@ -20,3 +21,19 @@ class VirtualCollectorHBA:
     def print_vc(self):
         print(f"Count of SMs of physical collector: {self.count_sm_per_col}")
         print(f"SM belongs to physical collector: {self.sm_belongs_to_col_of_index}")
+
+    def validate_SMs(self, t:int):
+        # Get all consumption readings
+        submitted_consumption = []
+        for sm in self.sm_sample:
+            submitted_consumption.append(sm.submit_historic_data(t=t))
+
+        # Calculate P~
+        nl = []
+        for col_idx in self.sm_belongs_to_col_of_index:
+            nl.append([self.collectors[col_idx].sm_count for x in range(t)])
+        nml = [[self.sm_belongs_to_col_of_index.count(x) for _ in range(t)] for x in self.sm_belongs_to_col_of_index]
+        P = np.multiply(np.divide(submitted_consumption, nl), nml)
+
+        # Start communication (also send index of sm in swarm)
+        pass

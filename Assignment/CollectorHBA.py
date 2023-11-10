@@ -42,26 +42,6 @@ class CollectorHBA:
         totals = np.sum(data, axis=0)
         return totals
 
-    # TODO: Part of virtual coll
-    def start_validation_process(self, t:int):
-        """
-        Starts the process to collect and validate past consumption readings.
-
-        Args:
-            t(int): Time frame for which the process is started
-        """
-        # Requesting data from SMs
-        P = []
-        for sm in self.smart_meters:
-           retrieved_data = sm.submit_historic_data(t)  
-           P.append(retrieved_data)
-        P = np.array(P)
-
-        # Building equation system
-        P.shape[0]
-        k = np.zeros(shape=(P.shape[0],1))
-        print()
-
 
 def generate_collectors(data: np.ndarray, count_collectors:int = None) -> List[CollectorHBA]:
     collector_list = []

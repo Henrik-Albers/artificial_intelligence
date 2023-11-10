@@ -17,7 +17,6 @@ class SwarmHBA:
     def initialize_new_swarm(self, swarm_size:int):
         sm_idxs = list(range(len(self.data)))
         rnd_sms = random.sample(sm_idxs, k=swarm_size)
-        rnd_sms = [5]
         swarm_sms = []
         sm_belongs_to_col_of_index = []
         for rnd_sm in rnd_sms:
@@ -44,6 +43,10 @@ class SwarmHBA:
             sm_belongs_to_col_of_index = sm_belongs_to_col_of_index
         )
 
+    def start_validation(self):
+        self.virtual_collector.validate_SMs(t=5)
+
 if __name__ == "__main__":
     swarm = SwarmHBA(swarm_size=2)
     swarm.virtual_collector.print_vc()
+    swarm.start_validation()
