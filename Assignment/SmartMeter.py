@@ -1,9 +1,7 @@
 import math
-import numpy as np
-import random
-from typing import List
-from scipy.stats import entropy, rv_histogram
 import statistics
+import numpy as np
+from scipy.stats import rv_histogram
 
 
 class SmartMeter:
@@ -18,7 +16,7 @@ class SmartMeter:
         self.id = id
         self.attack_status = attack_status
         self.readings = np.copy(readings)
-        self.salt = np.array(np.random.rand(1, len(readings))[0]*100)
+        self.salt = np.array(np.random.rand(1, len(readings))[0] * 100)
         self.swarm_size = None
         self.sum = np.copy(readings)
         self.avg_per_reading = None
@@ -73,7 +71,6 @@ class SmartMeter:
         self.avg_of_avg_readings = self.sum_of_avg / self.swarm_size
 
     def calc_flag(self, delta_boundary: float):
-
         own_mean = statistics.mean(self.readings)
         own_hist = rv_histogram(
             np.histogram(self.readings.astype("float64"), bins="auto", density=False), density=False
@@ -89,3 +86,12 @@ class SmartMeter:
         delta = math.sqrt((swarm_mean - own_mean)**2 + (swarm_entropy - own_entropy)**2)
         self.num_flags += int(delta > delta_boundary)
 
+    def calc_kld_distance(self):
+        combined_data = np.concatenate((self.avg_of_avg_readings, self.readings))
+        bin_edges = np.histogram_bin_edges(combined_data, bins="auto")
+
+        swarm_hist, _ = np.histogram(self.avg_of_avg_readings, bins=bin_edges, density=True)
+        own_hist, _ = np.histogram(self.readings, bins=bin_edges, density=True)
+
+        kld = np.sum(own_hist * np.log(own_hist / swarm_hist))
+        print(f"Kullback–Leibler divergence: {kld}")
