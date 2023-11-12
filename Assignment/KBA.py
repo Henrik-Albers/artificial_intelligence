@@ -3,13 +3,16 @@ from data.generate_test_data import generate_test_data_df
 from SmartMeter import SmartMeter
 from common import create_swarms
 
+klds = {
+    "bad": [],
+    "good": []
+}
 
-def kba(data: np.array, deviation_boundary: float, flag_boundary: int, swarm_iters: int):
+def kba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_iters: int):
     smart_meters = []
     malfunctioning = set()
     for i, record in enumerate(data):
         sm = SmartMeter(
-                id=i,
                 readings=record[1:-2],
                 attack_status=record[-1]
             )
@@ -47,20 +50,19 @@ def kba(data: np.array, deviation_boundary: float, flag_boundary: int, swarm_ite
             # each meter finds KLD
             # between the distribution of its own consumption
             # and the average consumption in the swarm
-            meter.calc_kld_distance()
-            if meter.num_flags > flag_boundary:
+            meter.calc_kld_distance(deviation_boundary, klds)
+            if meter.num_flags/meter.num_swarm_realisations > flag_boundary:
                 flagged.add(meter)
             meter.reset()
 
-    if malfunctioning == flagged:
-        print("All smart meters marked correctly")
-    else:
-        for f in flagged:
-            if f.attack_status != 'malfunctioning':
-                print("U done goofed")
-
 
 if __name__ == "__main__":
-    data = np.array(generate_test_data_df(T=100, N=500))
+    data = np.array(generate_test_data_df(T=200, N=50))
     # data = pd.read_csv("data/test_data_custom.csv")
-    kba(data, 3, 50, 10)
+    kba(data, 400, 0.6, 400)
+    print(f"Min good klds: {min(klds['good'])}\n"
+          f"Min bad klds: {min(klds['bad'])}\n"
+          f"Max good klds: {max(klds['good'])}\n"
+          f"Max bad klds: {max(klds['bad'])}\n"
+          f"Mean good klds: {np.mean(klds['good'])}\n"
+          f"Mean bad klds: {np.mean(klds['bad'])}\n")

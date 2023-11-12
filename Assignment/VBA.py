@@ -4,12 +4,16 @@ from SmartMeter import SmartMeter
 from common import create_swarms
 
 
-def vba(data: np.array, deviation_boundary: float, flag_boundary: int, swarm_iters: int):
+deltas = {
+    "bad": [],
+    "good": []
+}
+
+def vba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_iters: int) -> {SmartMeter}:
     smart_meters = []
     malfunctioning = set()
     for i, record in enumerate(data):
         sm = SmartMeter(
-                id=i,
                 readings=record[1:-2],
                 attack_status=record[-1]
             )
@@ -44,8 +48,8 @@ def vba(data: np.array, deviation_boundary: float, flag_boundary: int, swarm_ite
             meter.calc_avg_avg()
 
         for meter in swarm:
-            meter.calc_flag(deviation_boundary)
-            if meter.num_flags > flag_boundary:
+            meter.calc_flag(deviation_boundary, deltas)
+            if meter.num_flags/meter.num_swarm_realisations > flag_boundary:
                 flagged.add(meter)
             meter.reset()
 
@@ -56,10 +60,18 @@ def vba(data: np.array, deviation_boundary: float, flag_boundary: int, swarm_ite
             if f.attack_status != 'malfunctioning':
                 print("U done goofed")
 
+    return flagged
+
 
 if __name__ == "__main__":
-    data = np.array(generate_test_data_df(T=5, N=500))
+    data = np.array(generate_test_data_df(T=200, N=50))
     # data = pd.read_csv("data/test_data_custom.csv")
-    vba(data, 3, 50, 10)
+    vba(data, 400, 0.6, 400)
+    print(f"Min good deltas: {min(deltas['good'])}\n"
+          f"Min bad deltas: {min(deltas['bad'])}\n"
+          f"Max good deltas: {max(deltas['good'])}\n"
+          f"Max bad deltas: {max(deltas['bad'])}\n"
+          f"Mean good deltas: {np.mean(deltas['good'])}\n"
+          f"Mean bad deltas: {np.mean(deltas['bad'])}\n")
 
 

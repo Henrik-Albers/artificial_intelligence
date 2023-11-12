@@ -5,10 +5,10 @@ import pandas as pd
 def generate_test_data_df(
     T,
     N,
-    m_mean=10,
+    m_mean=1000,
     attack_percentage=0.1,
     stealing_percentage=0.5,
-    attack_strength=5
+    attack_strength=800
 ):
     """
     Generates  and returns dummy data for smart meters (SM)
@@ -34,7 +34,7 @@ def generate_test_data_df(
         is_stealing = np.random.choice(
             [0, 1], p=[1-stealing_percentage, stealing_percentage])
         for t in range(T):
-            value = np.random.normal(loc=m_mean)
+            value = np.random.normal(loc=m_mean, scale=3)
             # Current SM is attacker
             if is_attacker == 1:
                 # Current attacker is stealing or SM is malfunctioning
