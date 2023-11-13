@@ -73,18 +73,25 @@ class SmartMeter:
         self.avg_of_avg_readings = self.sum_of_avg / self.swarm_size
 
     def calc_flag(self, delta_boundary: float, deltas: dict):
+        combined_data = np.concatenate((self.avg_of_avg_readings, self.readings))
+        bin_edges = np.histogram_bin_edges(combined_data, bins="auto")
 
         own_mean = statistics.mean(self.readings)
-        own_hist, _ = np.histogram(self.readings, bins="auto", density=True)
-
-        own_hist[own_hist == 0] = 0.001
-        own_entropy = -np.sum(own_hist * np.log(own_hist))
+        own_hist, _ = np.histogram(self.readings, bins=bin_edges, density=True)
 
         swarm_mean = statistics.mean(self.avg_of_avg_readings)
-        swarm_hist, _ = np.histogram(self.avg_of_avg_readings, bins="auto", density=True)
+        swarm_hist, _ = np.histogram(self.avg_of_avg_readings, bins=bin_edges, density=True)
 
+        bin_width = np.diff(bin_edges)
+
+        own_hist[own_hist == 0] = 0.001
         swarm_hist[swarm_hist == 0] = 0.001
-        swarm_entropy = -np.sum(swarm_hist * np.log(swarm_hist))
+
+        pdf_swarm = swarm_hist * bin_width
+        pdf_own = own_hist * bin_width
+
+        own_entropy = -np.sum(pdf_own * np.log(pdf_own.astype("float64")))
+        swarm_entropy = -np.sum(pdf_swarm * np.log(pdf_swarm.astype("float64")))
 
         delta = math.sqrt((swarm_mean - own_mean)**2 + (swarm_entropy - own_entropy)**2)
         if self.attack_status == "malfunctioning":

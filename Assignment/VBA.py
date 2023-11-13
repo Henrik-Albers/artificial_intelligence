@@ -5,8 +5,9 @@ from common import create_swarms
 
 
 deltas = {
-    "bad": [],
-    "good": []
+    "malfunctioning": [],
+    "good": [],
+    "stealing":[]
 }
 
 def vba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_iters: int) -> {SmartMeter}:
@@ -67,11 +68,12 @@ if __name__ == "__main__":
     data = np.array(generate_test_data_df(T=200, N=50))
     # data = pd.read_csv("data/test_data_custom.csv")
     vba(data, 400, 0.6, 400)
-    print(f"Min good deltas: {min(deltas['good'])}\n"
-          f"Min bad deltas: {min(deltas['bad'])}\n"
-          f"Max good deltas: {max(deltas['good'])}\n"
-          f"Max bad deltas: {max(deltas['bad'])}\n"
-          f"Mean good deltas: {np.mean(deltas['good'])}\n"
-          f"Mean bad deltas: {np.mean(deltas['bad'])}\n")
-
-
+    print(f"Min good klds: {min(deltas['good'])}\n"
+          f"Min stealing klds: {min(deltas['stealing'])}\n"
+          f"Min malfunctioning klds: {min(deltas['malfunctioning'])}\n"
+          f"Max good klds: {max(deltas['good'])}\n"
+          f"Max stealing klds: {max(deltas['stealing'])}\n"
+          f"Max malfunctioning klds: {max(deltas['malfunctioning'])}\n"
+          f"Mean good klds: {np.mean(deltas['good'])}\n"
+          f"Mean stealing klds: {np.mean(deltas['stealing'])}\n"
+          f"Mean malfunctioning klds: {np.mean(deltas['malfunctioning'])}\n")
