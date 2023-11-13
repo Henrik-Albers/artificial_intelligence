@@ -4,8 +4,9 @@ from SmartMeter import SmartMeter
 from common import create_swarms
 
 klds = {
-    "bad": [],
-    "good": []
+    "malfunctioning": [],
+    "good": [],
+    "stealing":[]
 }
 
 def kba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_iters: int):
@@ -59,10 +60,13 @@ def kba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_i
 if __name__ == "__main__":
     data = np.array(generate_test_data_df(T=200, N=50))
     # data = pd.read_csv("data/test_data_custom.csv")
-    kba(data, 400, 0.6, 400)
+    kba(data, 400, 0.1, 400)
     print(f"Min good klds: {min(klds['good'])}\n"
-          f"Min bad klds: {min(klds['bad'])}\n"
+          f"Min stealing klds: {min(klds['stealing'])}\n"
+          f"Min malfunctioning klds: {min(klds['malfunctioning'])}\n"
           f"Max good klds: {max(klds['good'])}\n"
-          f"Max bad klds: {max(klds['bad'])}\n"
+          f"Min stealing klds: {max(klds['stealing'])}\n"
+          f"Min malfunctioning klds: {max(klds['malfunctioning'])}\n"
           f"Mean good klds: {np.mean(klds['good'])}\n"
-          f"Mean bad klds: {np.mean(klds['bad'])}\n")
+          f"Min stealing klds: {np.mean(klds['stealing'])}\n"
+          f"Min malfunctioning klds: {np.mean(klds['malfunctioning'])}\n")

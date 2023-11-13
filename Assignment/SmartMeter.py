@@ -88,25 +88,38 @@ class SmartMeter:
 
         delta = math.sqrt((swarm_mean - own_mean)**2 + (swarm_entropy - own_entropy)**2)
         if self.attack_status == "malfunctioning":
-            deltas["bad"].append(delta)
+            deltas["malfunctioning"].append(delta)
         else:
-            deltas["good"].append(delta)
+            if self.attack_status == "stealing":
+                deltas["stealing"].append(delta)
+            else:
+                deltas["good"].append(delta)
         self.num_flags += int(delta > delta_boundary)
 
     def calc_kld_distance(self, delta_boundary: float, klds: dict):
         combined_data = np.concatenate((self.avg_of_avg_readings, self.readings))
         bin_edges = np.histogram_bin_edges(combined_data, bins="auto")
 
-        swarm_hist, _ = np.histogram(self.avg_of_avg_readings, bins=bin_edges, density=True)
-        own_hist, _ = np.histogram(self.readings, bins=bin_edges, density=True)
+        swarm_hist, swarm_bins = np.histogram(self.avg_of_avg_readings, bins=bin_edges, density=True)
+        own_hist, own_bins = np.histogram(self.readings, bins=bin_edges, density=True)
 
-        own_hist[own_hist == 0] = 0.001
-        swarm_hist[swarm_hist == 0] = 0.001
+        # Bin width
+        bin_width = np.diff(swarm_bins)
+        
+        # Normalization
+        pdf_swarm = swarm_hist * bin_width
+        pdf_own = own_hist * bin_width
 
-        kld = np.sum(own_hist * np.log(own_hist / swarm_hist))
+        pdf_own[pdf_own == 0] = 0.001
+        pdf_swarm[pdf_swarm == 0] = 0.001
+
+        kld = np.sum(pdf_own * np.log((pdf_own / pdf_swarm).astype('float64')))
 
         if self.attack_status == "malfunctioning":
-            klds["bad"].append(kld)
+            klds["malfunctioning"].append(kld)
         else:
-            klds["good"].append(kld)
+            if self.attack_status == "stealing":
+                klds["stealing"].append(kld)
+            else:
+                klds["good"].append(kld)
         self.num_flags += int(kld > delta_boundary)
