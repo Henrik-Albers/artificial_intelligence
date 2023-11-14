@@ -3,14 +3,13 @@ from data.generate_test_data import generate_test_data_df
 from SmartMeter import SmartMeter
 from common import create_swarms
 
-
-deltas = {
+klds = {
     "malfunctioning": [],
     "good": [],
     "stealing":[]
 }
 
-def vba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_iters: int) -> {SmartMeter}:
+def kba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_iters: int):
     smart_meters = []
     malfunctioning = set()
     for i, record in enumerate(data):
@@ -49,31 +48,25 @@ def vba(data: np.array, deviation_boundary: float, flag_boundary: float, swarm_i
             meter.calc_avg_avg()
 
         for meter in swarm:
-            meter.calc_flag(deviation_boundary, deltas)
+            # each meter finds KLD
+            # between the distribution of its own consumption
+            # and the average consumption in the swarm
+            meter.calc_kld_distance(deviation_boundary, klds)
             if meter.num_flags/meter.num_swarm_realisations > flag_boundary:
                 flagged.add(meter)
             meter.reset()
-
-    if malfunctioning == flagged:
-        print("All smart meters marked correctly")
-    else:
-        for f in flagged:
-            if f.attack_status != 'malfunctioning':
-                print("U done goofed")
-
-    return flagged
 
 
 if __name__ == "__main__":
     data = np.array(generate_test_data_df(T=200, N=50))
     # data = pd.read_csv("data/test_data_custom.csv")
-    vba(data, 400, 0.6, 400)
-    print(f"Min good klds: {min(deltas['good'])}\n"
-          f"Min stealing klds: {min(deltas['stealing'])}\n"
-          f"Min malfunctioning klds: {min(deltas['malfunctioning'])}\n"
-          f"Max good klds: {max(deltas['good'])}\n"
-          f"Max stealing klds: {max(deltas['stealing'])}\n"
-          f"Max malfunctioning klds: {max(deltas['malfunctioning'])}\n"
-          f"Mean good klds: {np.mean(deltas['good'])}\n"
-          f"Mean stealing klds: {np.mean(deltas['stealing'])}\n"
-          f"Mean malfunctioning klds: {np.mean(deltas['malfunctioning'])}\n")
+    kba(data, 400, 0.1, 400)
+    print(f"Min good klds: {min(klds['good'])}\n"
+          f"Min stealing klds: {min(klds['stealing'])}\n"
+          f"Min malfunctioning klds: {min(klds['malfunctioning'])}\n"
+          f"Max good klds: {max(klds['good'])}\n"
+          f"Min stealing klds: {max(klds['stealing'])}\n"
+          f"Min malfunctioning klds: {max(klds['malfunctioning'])}\n"
+          f"Mean good klds: {np.mean(klds['good'])}\n"
+          f"Min stealing klds: {np.mean(klds['stealing'])}\n"
+          f"Min malfunctioning klds: {np.mean(klds['malfunctioning'])}\n")

@@ -1,8 +1,6 @@
 import math
-import numpy as np
-import random
-from typing import List
 import statistics
+import numpy as np
 
 
 class SmartMeter:
@@ -10,53 +8,125 @@ class SmartMeter:
     Single Smart Meter
 
     Args:
-        M1(np.ndarray): last t records of consumption
+        readings(np.ndarray): last t records of consumption
     """
 
-    def __init__(self, M1: np.ndarray, attack_status: str) -> None:
-        self.M1 = M1
+    def __init__(self, readings: np.ndarray, attack_status: str) -> None:
         self.attack_status = attack_status
-        self.T = len(M1)
-        self.Y = random.sample(range(100), self.T)
-        self.own_mean = statistics.mean(M1)
-        self.own_proba_hist = self.calculate_proba_hist(M1)
-        self.own_entropy = self.calculate_entropy(M1)
+        self.readings = np.copy(readings)
+        self.salt = np.array(np.random.rand(1, len(readings))[0] * 100)
+        self.swarm_size = None
+        self.sum = np.copy(readings)
+        self.avg_per_reading = None
+        self.num_flags = 0
+        self.num_swarm_realisations = 0
+        self.sum_of_avg = 0
+        self.avg_of_avg_readings = None
 
-    def calculate_proba_hist(self, elems: np.ndarray):
-        """
-        Calculates probability distribution from given histogram
+    def increment_swarm_count(self):
+        self.num_swarm_realisations += 1
 
-        Args:
-            elems(np.ndarray): Elements over which the probability is calculated
+    def reset(self):
+        self.swarm_size = None
+        self.sum = np.copy(self.readings)
+        self.avg_per_reading = None
+        self.sum_of_avg = 0
+        self.avg_of_avg_readings = None
 
-        Returns:
-            np.ndarray: Returns a list containing the probabilities of each element
-        """
-        # TODO: Currently wrong, has to be updated according to
-        #       https://www.scribbr.com/statistics/probability-distributions/
-        probabilities = [len((elems == x))/len(elems) for x in elems]
-        return probabilities
+    def set_swarm_size(self, swarm_size: int):
+        self.swarm_size = swarm_size
 
-    def calculate_entropy(self, elems: np.ndarray):
-        """
-        Calculates entropy based on the formula given in the paper
+    def __decrypt_sum(self):
+        self.sum -= (self.salt + self.readings)
 
-        Args:
-            elems(np.ndarray): Elements over which the entropy is calculated
+    def encrypt_sum(self):
+        self.sum += self.salt
 
-        Returns:
-            int: Entropy of the given list
-        """
-        entropy = 0
-        for elem in elems:
-            entropy += elem*math.log(elem)
-        entropy = -entropy
-        return entropy
+    def __decrypt_avg_sum(self):
+        self.sum_of_avg -= self.salt
 
+    def encrypt_avg_sum(self):
+        self.sum_of_avg += self.salt
 
-if __name__ == "__main__":
-    sm = SmartMeter(M1=[1, 2, 2, 3])
-    sm2 = SmartMeter(M1=[1, 2, 3, 4])
-    print(sm.own_proba_hist)
-    print(sm.own_entropy)
-    print(sm2.own_entropy)
+    def __receive_sum(self, previous_sum: np.ndarray):
+        self.sum += previous_sum
+
+    def __receive_avg(self, previous_sum: np.ndarray):
+        self.sum_of_avg += previous_sum
+
+    def send_sum(self, next_meter):
+        next_meter.__receive_sum(self.sum)
+        self.sum = np.copy(self.readings)
+
+    def send_avg(self, next_meter):
+        next_meter.__receive_avg(self.sum_of_avg)
+        self.sum_of_avg = 0
+
+    def calc_avg(self):
+        self.__decrypt_sum()
+        self.avg_per_reading = self.sum / self.swarm_size
+        self.sum = np.copy(self.readings)
+        self.sum_of_avg = self.avg_per_reading
+
+    def calc_avg_avg(self):
+        self.__decrypt_avg_sum()
+        self.avg_of_avg_readings = self.sum_of_avg / self.swarm_size
+
+    def calc_flag(self, delta_boundary: float, deltas: dict):
+        combined_data = np.concatenate((self.avg_of_avg_readings, self.readings))
+        bin_edges = np.histogram_bin_edges(combined_data, bins="auto")
+
+        own_mean = statistics.mean(self.readings)
+        own_hist, _ = np.histogram(self.readings, bins=bin_edges, density=True)
+
+        swarm_mean = statistics.mean(self.avg_of_avg_readings)
+        swarm_hist, _ = np.histogram(self.avg_of_avg_readings, bins=bin_edges, density=True)
+
+        bin_width = np.diff(bin_edges)
+
+        own_hist[own_hist == 0] = 0.001
+        swarm_hist[swarm_hist == 0] = 0.001
+
+        pdf_swarm = swarm_hist * bin_width
+        pdf_own = own_hist * bin_width
+
+        own_entropy = -np.sum(pdf_own * np.log(pdf_own.astype("float64")))
+        swarm_entropy = -np.sum(pdf_swarm * np.log(pdf_swarm.astype("float64")))
+
+        delta = math.sqrt((swarm_mean - own_mean)**2 + (swarm_entropy - own_entropy)**2)
+        if self.attack_status == "malfunctioning":
+            deltas["malfunctioning"].append(delta)
+        else:
+            if self.attack_status == "stealing":
+                deltas["stealing"].append(delta)
+            else:
+                deltas["good"].append(delta)
+        self.num_flags += int(delta > delta_boundary)
+
+    def calc_kld_distance(self, delta_boundary: float, klds: dict):
+        combined_data = np.concatenate((self.avg_of_avg_readings, self.readings))
+        bin_edges = np.histogram_bin_edges(combined_data, bins="auto")
+
+        swarm_hist, swarm_bins = np.histogram(self.avg_of_avg_readings, bins=bin_edges, density=True)
+        own_hist, own_bins = np.histogram(self.readings, bins=bin_edges, density=True)
+
+        # Bin width
+        bin_width = np.diff(swarm_bins)
+        
+        # Normalization
+        pdf_swarm = swarm_hist * bin_width
+        pdf_own = own_hist * bin_width
+
+        pdf_own[pdf_own == 0] = 0.001
+        pdf_swarm[pdf_swarm == 0] = 0.001
+
+        kld = np.sum(pdf_own * np.log((pdf_own / pdf_swarm).astype('float64')))
+
+        if self.attack_status == "malfunctioning":
+            klds["malfunctioning"].append(kld)
+        else:
+            if self.attack_status == "stealing":
+                klds["stealing"].append(kld)
+            else:
+                klds["good"].append(kld)
+        self.num_flags += int(kld > delta_boundary)
