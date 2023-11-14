@@ -8,7 +8,7 @@ class SmartMeter:
     Single Smart Meter
 
     Args:
-        M1(np.ndarray): last t records of consumption
+        readings(np.ndarray): last t records of consumption
     """
 
     def __init__(self, readings: np.ndarray, attack_status: str) -> None:
